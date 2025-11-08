@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox - Windows Mail</title>
+    <link rel="icon" type="image/png" href="mail.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Tahoma", "Verdana", sans-serif;
+            background: linear-gradient(to bottom, #5a7bb6 0%, #3e5f8f 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .window {
+            width: 90%;
+            max-width: 900px;
+            height: 85vh;
+            background: #ece9d8;
+            border: 3px solid;
+            border-color: #ffffff #0831d9 #0831d9 #ffffff;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title-bar {
+            background: linear-gradient(to bottom, #0997ff 0%, #0053ee 100%);
+            padding: 3px 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .title-left {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .window-icon {
+            width: 16px;
+            height: 16px;
+            background: url('mail.png') no-repeat center;
+            background-size: contain;
+            border-radius: 2px;
+        }
+
+        .window-buttons {
+            display: flex;
+            gap: 2px;
+        }
+
+        .window-btn {
+            width: 21px;
+            height: 20px;
+            background: linear-gradient(to bottom, #dddddd 0%, #a0a0a0 100%);
+            border: 1px solid;
+            border-color: #ffffff #000000 #000000 #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .window-btn:active {
+            border-color: #000000 #ffffff #ffffff #000000;
+        }
+
+        .menu-bar {
+            background: #ece9d8;
+            padding: 2px 5px;
+            font-size: 11px;
+            border-bottom: 1px solid #919b9c;
+        }
+
+        .toolbar {
+            background: linear-gradient(to bottom, #f1f0ed 0%, #d6d3ce 100%);
+            padding: 4px 5px;
+            border-bottom: 1px solid #919b9c;
+            display: flex;
+            gap: 3px;
+        }
+
+        .toolbar-btn {
+            padding: 4px 8px;
+            background: linear-gradient(to bottom, #ffffff 0%, #ece9d8 100%);
+            border: 1px solid;
+            border-color: #ffffff #7c7c7c #7c7c7c #ffffff;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .inbox-list {
+            width: 100%;
+            background: white;
+            border-right: 1px solid #919b9c;
+            overflow-y: auto;
+        }
+
+        .email-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .email-item:hover {
+            background: #dfe8f6;
+        }
+
+        .email-item.unread {
+            font-weight: bold;
+            background: #f0f0f0;
+        }
+
+        .email-icon {
+            width: 16px;
+            height: 16px;
+            background: url('silwa.png') no-repeat center;
+            background-size: cover;
+            border-radius: 2px;
+        }
+
+        .email-preview {
+            flex: 1;
+            font-size: 12px;
+        }
+
+        .email-from {
+            color: #000;
+            margin-bottom: 2px;
+        }
+
+        .email-subject {
+            color: #666;
+        }
+
+        .email-view {
+            width: 100%;
+            background: white;
+            overflow-y: auto;
+            padding: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .email-view.active {
+            display: block;
+        }
+
+        .email-header {
+            border-bottom: 2px solid #0053ee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .email-meta {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .email-body {
+            white-space: pre-wrap;
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+        }
+
+        .back-btn {
+            padding: 5px 15px;
+            background: linear-gradient(to bottom, #ffffff 0%, #ece9d8 100%);
+            border: 1px solid;
+            border-color: #ffffff #7c7c7c #7c7c7c #ffffff;
+            font-size: 11px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .back-btn:active {
+            border-color: #7c7c7c #ffffff #ffffff #7c7c7c;
+        }
+
+        .error-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .error-overlay.active {
+            display: flex;
+        }
+
+        .error-window {
+            width: 380px;
+            background: #ece9d8;
+            border: 3px solid;
+            border-color: #ffffff #0831d9 #0831d9 #ffffff;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+        }
+
+        .error-title-bar {
+            background: linear-gradient(to bottom, #0997ff 0%, #0053ee 100%);
+            padding: 3px 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .error-content {
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .error-icon {
+            width: 32px;
+            height: 32px;
+            background: #ff0000;
+            border-radius: 50%;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .error-icon::before {
+            content: '✕';
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .error-message {
+            flex: 1;
+            font-size: 12px;
+        }
+
+        .error-buttons {
+            padding: 0 15px 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .error-btn {
+            padding: 5px 25px;
+            background: linear-gradient(to bottom, #ffffff 0%, #ece9d8 100%);
+            border: 1px solid;
+            border-color: #ffffff #7c7c7c #7c7c7c #ffffff;
+            font-size: 11px;
+            cursor: pointer;
+            min-width: 75px;
+        }
+
+        .error-btn:active {
+            border-color: #7c7c7c #ffffff #ffffff #7c7c7c;
+        }
+
+        .status-bar {
+            background: #ece9d8;
+            border-top: 1px solid #ffffff;
+            padding: 2px 5px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-overlay" id="errorOverlay">
+        <div class="error-window">
+            <div class="error-title-bar">
+                <span>Windows Mail</span>
+            </div>
+            <div class="error-content">
+                <div class="error-icon"></div>
+                <div class="error-message">
+                    You can not escape Silwa.
+                </div>
+            </div>
+            <div class="error-buttons">
+                <button class="error-btn" onclick="closeError()">OK</button>
+                <button class="error-btn" onclick="closeError()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="window">
+        <div class="title-bar">
+            <div class="title-left">
+                <div class="window-icon"></div>
+                <span>Inbox - Windows Mail</span>
+            </div>
+            <div class="window-buttons">
+                <div class="window-btn">_</div>
+                <div class="window-btn">□</div>
+                <div class="window-btn">×</div>
+            </div>
+        </div>
+
+        <div class="menu-bar">
+            File &nbsp; Edit &nbsp; View &nbsp; Tools &nbsp; Message &nbsp; Help
+        </div>
+
+        <div class="toolbar">
+            <button class="toolbar-btn">New Mail</button>
+            <button class="toolbar-btn">Reply</button>
+            <button class="toolbar-btn">Forward</button>
+            <button class="toolbar-btn">Delete</button>
+        </div>
+
+        <div class="content">
+            <div class="inbox-list" id="inboxList">
+                <div class="email-item unread" onclick="openEmail()">
+                    <div class="email-icon"></div>
+                    <div class="email-preview">
+                        <div class="email-from">Curtis Sliwa</div>
+                        <div class="email-subject">Re: Cannabis Shop Survey Question</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="email-view" id="emailView">
+                <button class="back-btn" onclick="backToInbox()">← Back to Inbox</button>
+                <div class="email-header">
+                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 10px;">Re: Cannabis Shop Survey Question</div>
+                    <div class="email-meta"><strong>From:</strong> Curtis Sliwa &lt;guardian.angel@nyc.local&gt;</div>
+                    <div class="email-meta"><strong>To:</strong> Survey Respondents</div>
+                    <div class="email-meta"><strong>Date:</strong> Sent: Monday, November 07, 2025 2:47 AM</div>
+                </div>
+                <div class="email-body">Cannabis Shop (version 6)
+"Have you ever purchased anything in a cannabis shop?"
+"Sure I have, but it was legal," said Zohran Mamdani.
+"No," said Andrew Cuomo.
+"Look, it's a complicated question, and let me tell you why. Back in 1987, or maybe it was '88, I can't remember exactly, but I was doing my Guardian Angels patrol down on the Lower East Side, right around Avenue C, or maybe it was Avenue D, one of those avenues that sounds like it shouldn't exist but it does, and I'm walking with my boys in red, we got about fifteen of us that night, which was unusual because typically we'd have maybe eight or nine, but this was right after that incident with the guy they called "Motorcycle Mike" who wasn't actually named Mike, his real name was Dennis, but everyone called him Mike because he had this motorcycle that he'd stolen from a guy named Mike, or so the story goes, I never verified it personally, but anyway, we're walking down this street and there's this bodega, not the good bodega, the other one, the one run by the Dominican guy with the glass eye, not the one with the hook hand, that was a different bodega that burned down in '85, or was it '86, I think it might have been '86 because that was the same year I had that fight with those guys outside the Port Authority, where I took on seven, no wait, it was eight guys, one of them was hiding behind a hot dog cart, and I'm bleeding from my forehead, there's blood mixing with the rain, and I'm thinking to myself "Curtis, this is it, this is how you go out, behind a Sabrett cart," but I digress... so we're at this bodega, and this guy comes up to me, they called him "Little Anthony," not because he was small, he was actually about six-foot-three, but because his father was "Big Anthony" who ran numbers out of a barbershop in Bensonhurst, and Little Anthony says to me, he says "Curtis, Curtis Sliwa, Guardian Angel, protector of the innocent, scourge of the criminal element, I got a question for you," and I say "Anthony, what is it," and he says "You ever tried the marijuana?" and I said "Anthony, let me tell you something," and this is where it gets interesting because at that exact moment, a car backfires, or maybe it was a gunshot, we never found out, but everyone hits the deck, I'm down on the ground, my red beret rolls into a puddle that I'm pretty sure was either motor oil or possibly blood from an earlier incident that week involving a guy they called "Sammy Switchblade" who actually preferred knives to switchblades despite the nickname, and I'm lying there thinking about my life, about the choices that led me to this moment, face-down on Avenue C or D, I still can't remember which, and Little Anthony is next to me, and he's still trying to have this conversation about cannabis, and I'm saying "Anthony, Anthony, this is neither the time nor the place," but he's insistent, he says "Curtis, I need to know, for a survey I'm conducting," and I said "A survey? Anthony, you're a numbers runner, why are you conducting surveys?" and he says "It's for community outreach," and at this point I realize the car that backfired or the gun that shot, whatever it was, the danger has passed, so we get up, and my knee is killing me, not my left knee, my right knee, the one I injured back in '82 when I chased that guy through three different subway cars on the 4 train, or maybe it was the 6 train, one of the numbered trains, and I caught him too, I always catch them, except for that one time in '79, but we don't talk about that—"
+
+Silwa coughed.
+
+"—and that's when the fire hydrant exploded, which shouldn't have been possible because it was January, or February, one of the cold months, but this hydrant just erupts like Mount Vesuvius, except with water that's somehow hot, steaming hot, and I'm thinking "Curtis, in all your years on these streets, you've never seen a hydrant do that," and Little Anthony gets drenched, absolutely soaked, and his survey papers are disintegrating in his hands, and he's screaming something about the community outreach data being ruined, and I try to help him but then this guy appears, they called him "Professor Meatball" because he had a PhD in philosophy but he sold meatball heroes from a cart on 42nd Street, or maybe it was 43rd, one of those streets in the Forties that all blend together, and the Professor, he's yelling at us because apparently we're standing on his invisible territory line, now I didn't know there were invisible territory lines, but the Professor insists they're there, he's got a whole map, except the map is also invisible, so I have to take his word for it, and he's drawing in the air with his finger showing us where the boundaries are, and Little Anthony is saying "Professor, with all due respect, your invisible map is contradicting the invisible map that Crazy Eddie drew last week," not the electronics store Crazy Eddie, a different Crazy Eddie, this one was a street vendor who sold knockoff watches that ran backwards, which he claimed was a feature not a bug, he said it helped people "understand time differently," whatever that means, and I'm standing there, water from the impossible hot hydrant steaming around us, my Guardian Angels are scattered because half of them chased after what they thought was a purse snatcher but turned out to be a guy running to catch a bus, and the other half are arguing with a mime who broke character to yell at them about blocking his performance space, and I haven't even answered Little Anthony's original question about the cannabis—"
+
+Silwa coughed again.
+
+"—when suddenly this pigeon lands on my shoulder, except it's not a regular pigeon, it's enormous, we're talking the size of a small turkey, and it's got this look in its eye like it knows something, like it's seen things, and it starts talking, now I know what you're thinking, "Curtis, pigeons don't talk," and you're right, they don't, except this one does, and it says to me in perfect English, or maybe it was Italian, I don't speak Italian but it sounded romantic, whatever it said, and my Guardian Angel Raphael, not the angel from the Bible, my guy Raphael who worked nights at a 24-hour deli in Alphabet City, he comes running over and he says "Curtis, Curtis, you're not gonna believe this, but I just saw Mayor Koch," and I say "Raphael, that's not unusual, Mayor Koch is around," and he says "No, Curtis, I saw him levitating outside the Chrysler Building," and I say "Raphael, that's impossible, first of all we're not near the Chrysler Building, we're on Avenue C or D, and second of all, people don't levitate," but Raphael swears up and down that he saw it, and he's got this Polaroid camera, the kind that spits out the photos right away, and he's waving a photo at me but it's still developing, you know how those things took forever, and we're all staring at this gradually appearing image, and the giant pigeon is still on my shoulder making these cooing sounds that honestly sound more like a diesel engine, and Little Anthony is trying to wring out his survey papers, and Professor Meatball is repositing his invisible territorial boundaries because apparently the hydrant explosion shifted them—"
+
+Silwa coughed once more. He was now smoking. Where did he get the pipe? We will never know.
+
+"—and that's when the manhole cover three feet away starts rattling, and I'm thinking "Oh no, not again," because back in 1983, or '84, I can't remember which, I had an incident with the underground tunnel people, not the mole people, different group, these were the Tunnel Philosophers, a group of former Columbia professors who decided to live in the subway tunnels and debate Kantian ethics 24/7, and their leader was a woman they called "Doctor Darkness" because she had a doctorate in Medieval Literature and she only wore black, and she had this theory that all of New York's problems could be solved if we just rearranged the subway map, not the actual subways, just the map, and I told her "Doctor, that's not how it works," but she wouldn't listen, she was very committed to her map theory, and anyway this manhole cover is rattling and up comes, I kid you not, a mariachi band, a full mariachi band, seven guys with sombreros and guitars and trumpets, emerging from the sewers, and they start playing "La Bamba" except they're playing it in a minor key which gives it this really ominous feel, and one of my Guardian Angels, Bobby "The Whistle" Santangelo, so named because he could whistle loud enough to stop traffic, literally stop it, cars would stall out when he whistled, nobody knew why, maybe it was the frequency, Bobby starts dancing with the mariachi band, and I'm yelling "Bobby, Bobby, we're on patrol, this is not a dance situation," but he can't hear me over the minor-key "La Bamba," and the giant pigeon finally flies away but not before stealing my red beret, just plucks it right off my head and takes off toward what I think is New Jersey, though it could have been Queens, I've always had trouble with directions when there are talking pigeons involved—"
+
+Silwa started ascending.
+
+"—and Little Anthony tugs on my sleeve, he's persistent, I'll give him that, and he says "Curtis, Curtis, I really need to know about the cannabis situation," and I say "Anthony, can't you see I'm dealing with mariachi band emerging from a manhole, a hydrant that defies the laws of thermodynamics, and Professor Meatball's invisible territory dispute?" and he says "Yes, but my survey is due tomorrow," and I say "Due to who, Anthony? Who is this survey for?" and he gets this look, kind of shifty, and he says "The Consortium," and I say "What Consortium?" and he says "The Consortium of Interested Parties Who Want To Know Things," and I say "Anthony, that's not a real organization," and he pulls out a business card, except the business card is made of what appears to be salami, and I'm reading it, and it does say "The Consortium of Interested Parties Who Want To Know Things," with an address on a street I've never heard of, and I've heard of every street, I'm Curtis Sliwa, I know streets, but this one is "Avenue Q-and-a-Half," which according to my knowledge of the alphabet and New York City geography, should not exist, but there it is, printed on cured meat, and the mariachi band has now been joined by the mime from earlier, who's apparently decided that joining a mariachi band is not breaking his mime vow, which makes no sense but nothing makes sense anymore—"
+
+Silwa starts dancing.
+
+"—and Raphael runs back over, he's been gone for what feels like ten minutes but he swears it's been three hours, and he's aged, visibly aged, he's got gray in his beard that wasn't there before, and he says "Curtis, you're not gonna believe what I just experienced," and I say "Raphael, try me, I've just seen things that would make Salvador Dali say 'that's a bit much,'" and he says "I went into that new deli on Avenue B, or maybe it was Avenue A, the one that replaced the old deli that was run by the Czech guy with the wooden teeth," not dentures, actual wooden teeth he'd carved himself, claimed they were stronger than real teeth, and Raphael says "I ordered a sandwich, just a regular turkey sandwich, and when they made it, time started running backwards, I watched them unmake the sandwich, then un-slice the turkey, then the turkey ran out of the deli backwards and I followed it, Curtis, I followed that turkey through the streets of Manhattan as it ran backwards through its entire life, I saw it become a baby turkey, then an egg, and I'm chasing this egg through Times Square, except Times Square is now completely empty except for one guy selling maps to celebrity homes, except all the celebrities are from the 1920s, and the egg leads me to this warehouse in Brooklyn, or maybe it was the Bronx, one of the outer boroughs, and inside the warehouse there's a meeting happening, Curtis, a meeting of all the people who've ever asked you questions you couldn't answer, and they're voting on something, and Little Anthony's father Big Anthony is there, and he sees me and says 'Raphael, you're not supposed to be here yet, the backwards turkey wasn't supposed to bring you until next Thursday,' and I say 'Big Anthony, what is this?' and he says 'This is the Council of Unanswered Questions, we meet every third Wednesday in months that have an R in them, and we're trying to decide what to do about Curtis's cannabis answer,' and that's when time snapped forward again and I ended up back here, except I'm older now, Curtis, I'm older and I've seen things—"
+
+Mamdani joins Silwa in dancing. Cuomo scoffs.
+
+"—and that's when the bodega explodes, not the good bodega, and not the one with the glass-eyed Dominican guy, but a third bodega that I swear wasn't there five minutes ago, it just appeared and immediately exploded, except it's not a fire explosion, it's more like an explosion of expired lottery tickets, just thousands of losing scratch-offs flying through the air like the world's most depressing confetti, and one of them lands in my hand and I look at it and it's from 1992, and it says I've won ten million dollars, but it's expired, and I'm thinking "Curtis, this is a metaphor for something, but you're too tired to figure out what," and Little Anthony is crying now, actual tears, because his salami business card has been eaten by a stray cat, not a regular stray cat, this cat is wearing a tiny business suit and carrying a tiny briefcase, and the cat looks at me and says, in perfect English this time, definitely English, "Curtis Sliwa, Guardian Angel, the answer you seek is not in the question you've been asked, but in the question you haven't thought to ask yet," and then the cat hails a cab, an actual cab stops for this cat, and it gets in and leaves, and the cab driver doesn't seem at all surprised by his feline passenger—"
+
+Cuomo does not dance. Silwa coughs yet again.
+
+"—and Professor Meatball has now drawn a new invisible map that he claims shows the location of "the truth about everything," and he's charging five dollars to look at it, except you can't actually look at it because it's invisible, you're just giving him five dollars to point at empty air, and somehow he's got customers, there's a line forming, and one of the customers is a guy I arrested back in 1981 for trying to steal a parking meter, not the money from it, the entire meter, he wanted to use it as a floor lamp, and he recognizes me and says "Curtis! Curtis Sliwa! You saved my life that night, you know that? You arrested me before I could get that parking meter home, and if I'd gotten it home, I would have plugged it in, and it would have electrocuted me because I don't understand electricity, so thank you, Curtis, you're a hero," and he tries to hug me but trips over the invisible territorial line and falls into a pile of the losing lottery tickets, and he starts laughing, just hysterical laughter, and he says "These are all my tickets! I've been looking for these since 1992! I thought I'd lost them in a flood but they were just waiting to explode out of a phantom bodega!", and the mariachi band starts playing what I think is "Happy Birthday" but it might be "The Star-Spangled Banner," it's hard to tell in a minor key, and Little Anthony finally gives up on his survey, he just sits down on the curb, well, he tries to sit on the curb but he actually sits about three inches above it, like the curb is rejecting him, and he's floating there, cross-legged, in mid-air, and he looks at me with these defeated eyes and says—"
+
+Silwa starts emitting light.
+
+"—"Curtis, forget the cannabis question, I need to know, have you ever felt like reality is just a suggestion and we're all improvising?" and I say "Anthony, every single day since 1977," and that's when the original question comes back to me, like a boomerang made of memory, and I realize I still haven't answered whether I've purchased cannabis, and honestly, at this point, with everything that's happened in the last... how long has it been? Time feels weird now, like it's folding in on itself, Raphael's gray beard is starting to grow backwards, he's getting younger again, the mariachi band is now playing in reverse, the giant pigeon is flying back toward us carrying my beret, which is now on fire for some reason, blue fire, which shouldn't be possible but here we are, and I think to myself, "Curtis, this is it, this is the moment where you finally answer the question," but before I can open my mouth, the street underneath us transforms into a giant Monopoly board, we're all standing on different properties, I'm on Park Place, Little Anthony is floating above Mediterranean Avenue, the mime is on Free Parking looking very pleased with himself, and a voice from above, or maybe below, or maybe from inside the nearest mailbox, says "Curtis Sliwa, you have thirty seconds to answer or everyone gets turned into street signs," and I don't know if that's a bluff but I've seen enough impossible things tonight that I'm not willing to risk it, so I open my mouth to finally, definitively answer whether or not I have purchased cannabis—"
+
+Silwa materialises a phone-like object.
+
+"—but that's when my mother calls, not on a phone—"
+
+Silwa throws the phone out of orbit.
+
+"—she just appears as a ghostly projection in the sky, like the Bat-Signal but it's my mother, and she says "Curtis, Curtis, did you remember to feed the cats?" and I have seventeen cats, or maybe it's nineteen, I lose count, they're all rescue cats with missing legs or extra tails or psychological problems from their time on the streets, and I completely forgot about them, and the guilt hits me like a freight train, and the Monopoly board starts shaking, and Little Anthony is ascending higher now, he's about ten feet off the ground, still floating cross-legged, and he's achieved some kind of enlightenment, he's saying "Curtis, I understand now, the cannabis question was never about cannabis, it was about the journey, the friends we made along the way, the impossible hot hydrants, the backwards turkeys, the salami business cards," and I'm nodding because even though none of this makes sense, in a weird way it makes perfect sense, and the mime finally speaks, breaking years of silence, and he says "Curtis Sliwa, Guardian Angel, protector of the innocent, the answer is—" but we never hear what the answer is because at that exact moment, a flock of the giant pigeons arrives and they're carrying a banner that says "TO BE CONTINUED," except the banner is written in ancient hieroglyphics that somehow we all can read, and they carry Little Anthony away, still floating, still cross-legged, still clutching the remains of his waterlogged survey, and Professor Meatball's invisible map suddenly becomes visible and it's just a drawing of a sandwich, and the mariachi band descends back into the manhole playing "Somewhere Over the Rainbow" in a key that hasn't been discovered yet, and I'm standing there, alone now, well, not alone, Raphael is there but he's somehow both young and old simultaneously, existing in a state of temporal superposition, and he looks at me and says "Curtis, did any of that just happen?" and I say "Raphael, in this city, on these streets, anything can happen," and he says "But did you buy cannabis?" and I realize we're right back where we started, and I open my mouth to answer, and—"</div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span>1 message(s), 1 unread</span>
+            <span>Connected</span>
+        </div>
+    </div>
+
+    <script>
+        function openEmail() {
+            document.getElementById('inboxList').style.display = 'none';
+            document.getElementById('emailView').classList.add('active');
+        }
+
+        function backToInbox() {
+            document.getElementById('errorOverlay').classList.add('active');
+        }
+
+        function closeError() {
+            document.getElementById('errorOverlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
